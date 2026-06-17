@@ -1,0 +1,13 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+.secrets/
+
+# OS
+.DS_Store
+
+# NOTE: results/ is intentionally NOT ignored — scorecards are committed.
