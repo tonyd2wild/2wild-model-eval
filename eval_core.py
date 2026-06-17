@@ -118,6 +118,20 @@ def summarize(scenario_results):
         round(points / (total_tokens / 1000.0), 3) if total_tokens else 0.0
     )
 
+    # throughput: output tok/s. "effective" = output tokens / total generation
+    # wall time (incl. prefill across all turns). "decode" subtracts the first-token
+    # latency per scenario as a prefill proxy (closer to pure single-stream decode).
+    total_completion = sum(r.get("completion_tokens", 0) or 0 for r in scenario_results)
+    gen_seconds = sum(
+        (sum(r.get("turn_latencies_ms", []) or []) / 1000.0) for r in scenario_results
+    )
+    decode_seconds = sum(
+        max(0.0, (sum(r.get("turn_latencies_ms", []) or []) - (r.get("ttft_ms") or 0)) / 1000.0)
+        for r in scenario_results
+    )
+    tok_s_effective = round(total_completion / gen_seconds, 1) if gen_seconds else 0.0
+    tok_s_decode = round(total_completion / decode_seconds, 1) if decode_seconds > 0 else 0.0
+
     stars = stars_for_quality(quality)
 
     return {
@@ -132,7 +146,10 @@ def summarize(scenario_results):
         "responsiveness": responsiveness,
         "deployability": deployability,
         "total_tokens": total_tokens,
+        "completion_tokens": total_completion,
         "token_efficiency": token_efficiency,
+        "tok_s_decode": tok_s_decode,
+        "tok_s_effective": tok_s_effective,
         "stars": stars,
         "rating": rating_label(stars),
     }
@@ -180,6 +197,8 @@ def format_metrics_block(agg):
         f"Deployability:  {agg['deployability']:.1f}  (0.7*Quality + 0.3*Responsiveness)",
         f"Token Eff.:     {agg['token_efficiency']:.3f}  pts / 1K tokens "
         f"(total {agg['total_tokens']} tokens)",
+        f"Throughput:     {agg.get('tok_s_decode', 0):.1f} tok/s decode · "
+        f"{agg.get('tok_s_effective', 0):.1f} effective",
     ])
 
 

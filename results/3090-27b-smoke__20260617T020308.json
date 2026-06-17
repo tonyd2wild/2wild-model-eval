@@ -20,7 +20,10 @@
     "total_tokens": 2401,
     "token_efficiency": 2.499,
     "stars": 5,
-    "rating": "Excellent"
+    "rating": "Excellent",
+    "completion_tokens": 85,
+    "tok_s_effective": 34.1,
+    "tok_s_decode": 79.3
   },
   "scenarios": [
     {
