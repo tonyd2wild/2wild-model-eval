@@ -59,7 +59,7 @@ def _stream_chat(endpoint, model, messages, tools, tool_choice, timeout):
         # ask OpenAI-compatible servers to emit a final usage chunk while streaming
         "stream_options": {"include_usage": True},
         "temperature": 0.0,
-        "max_tokens": 1024,
+        "max_tokens": 8192,
     }
     if tools:
         payload["tools"] = tools
@@ -301,6 +301,12 @@ def main():
                     help="only run scenarios in this category")
     ap.add_argument("--timeout", type=int, default=120, help="per-call timeout (s)")
     ap.add_argument("--note", default=None, help="free-text note stored in the report")
+    ap.add_argument("--quant", default=None,
+                    help="quantization, e.g. AWQ-INT4, NVFP4, FP8, Q2_K_XL")
+    ap.add_argument("--cluster", default=None,
+                    help="hardware/topology, e.g. '4x DGX Spark TP=4'")
+    ap.add_argument("--ctx", default=None,
+                    help="served context length, e.g. 230K, 1M")
     ap.add_argument("--no-write", action="store_true",
                     help="print only, don't write result files")
     args = ap.parse_args()
@@ -339,6 +345,9 @@ def main():
         "endpoint": args.endpoint,
         "utc": datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
         "note": args.note,
+        "quant": args.quant,
+        "cluster": args.cluster,
+        "ctx": args.ctx,
     }
 
     if not args.no_write:
